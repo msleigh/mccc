@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "mccc"
+version = "0.0.1"
+description = "Monte Carlo criticality code"
+authors = [ "msleigh", "msleigh@users.noreply.github.com" ]
+license = "Apache 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+mkdocs-material = "^9.1.13"
+pre-commit = "^3.3.1"
+pytest = "^7.3.1"
+ruff = "0.0.265"
+towncrier = "^22.12.0"
+
+[tool.poetry.scripts]
+
+[tool.towncrier]
+directory = "changelog.d"
+filename = "CHANGELOG.md"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/msleigh/mccc"
+"Bug Tracker" = "https://github.com/msleigh/mccc/issues"
+"CI" = "https://github.com/msleigh/mccc/actions"
+"Changelog" = "https://github.com/msleigh/mccc/releases"
