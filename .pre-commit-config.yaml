@@ -1,7 +1,7 @@
 ---
 repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v4.4.0
+      rev: v4.5.0
       hooks:
           - id: trailing-whitespace
           - id: end-of-file-fixer
@@ -19,7 +19,7 @@ repos:
           - id: forbid-submodules
           - id: mixed-line-ending
     - repo: https://github.com/asottile/reorder-python-imports
-      rev: v3.9.0
+      rev: v3.12.0
       hooks:
           - id: reorder-python-imports
     - repo: https://github.com/jumanjihouse/pre-commit-hooks
@@ -27,7 +27,7 @@ repos:
       hooks:
           - id: script-must-not-have-extension
     - repo: https://github.com/adrienverge/yamllint.git
-      rev: v1.31.0
+      rev: v1.33.0
       hooks:
           - id: yamllint
             args: [--format, parsable, --strict]
@@ -36,11 +36,11 @@ repos:
       hooks:
           - id: yamlfmt
     - repo: https://github.com/Lucas-C/pre-commit-hooks
-      rev: v1.5.1
+      rev: v1.5.4
       hooks:
           - id: forbid-tabs
     - repo: https://github.com/jackdewinter/pymarkdown
-      rev: v0.9.9
+      rev: v0.9.14
       hooks:
           - id: pymarkdown
     - repo: local
