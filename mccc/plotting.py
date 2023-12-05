@@ -31,3 +31,22 @@ def plot_starting_positions(starting_positions=None):
     plt.ylabel("Frequency")
     plt.title("Histogram of Starting positions")
     return
+
+
+def plot_particle_convergence(df):
+    """
+    Function to plot k1 and k2 as a function of particle number.
+    """
+    df.plot(
+        y=["k1", "k2"],
+        logx=True,
+        grid=True,
+        yerr=[df["k1_std"], df["k2_std"]],
+        xlim=(500, 2000000),
+        ylim=(0.9, 1.1),
+        xlabel="No. of particles",
+        ylabel="$k_{\mathrm{eff}}$",
+        title="Convergence of $k_{\mathrm{eff}}$ with no. of particles.",
+    )
+    plt.savefig("particle_convergence.png")
+    return

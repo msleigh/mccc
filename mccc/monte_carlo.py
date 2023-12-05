@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
+import sys
+
+import click
+import pandas as pd
+from numpy import mean
+from numpy import std
+
 from mccc.geometry import update_neutron_position
+from mccc.plotting import plot_particle_convergence
 from mccc.plotting import plot_starting_positions
 from mccc.sampling import sample_direction_cosine
 from mccc.sampling import sample_interaction_type
@@ -75,11 +83,13 @@ def simulate_single_history(initial_data, tallies, start_positions):
         tallies["secondary"] += 1
 
 
-def trial(plot=True):
+def run(generations, particles, plot=True):
     """
     A single independent run with a fixed number of generations and particles.
     """
-    initial_data = setup_simulation()
+    initial_data = setup_simulation(
+        num_particles=particles, num_generations=generations
+    )
 
     num_generations = initial_data["num_generations"]
     num_particles = initial_data["num_particles"]
@@ -118,33 +128,8 @@ def trial(plot=True):
             # of start positions for the next generation
             next_start_positions += new_start_positions
 
-        print(tallies)
-
-        print("Fission", tallies["fission"] / tallies["collision"], fission_prob)
-        print(
-            "Scatter",
-            tallies["scatter"] / tallies["collision"],
-            scatter_prob,
-        )
-        print(
-            "Absorbs",
-            tallies["capture"] / tallies["collision"],
-            1 - fission_prob - scatter_prob,
-        )
-        c = tallies["secondary"] / tallies["collision"]
-        print("c", c)
-        print(nu * fission_prob / (c - scatter_prob))
-
-        # Sanity checks
-        assert tallies["history"] == num_particles_in_generation
-        assert (
-            tallies["capture"] + tallies["leakage"] + tallies["fission"]
-            == num_particles_in_generation
-        )
-        assert (
-            tallies["scatter"] + tallies["fission"] + tallies["capture"]
-            == tallies["collision"]
-        )
+        if tallies["collision"] == 0:
+            sys.exit("Zero collisions")
 
         # Estimate k_eff
         k1 = (
@@ -152,12 +137,42 @@ def trial(plot=True):
             * tallies["fission"]
             / (tallies["capture"] + tallies["leakage"] + tallies["fission"])
         )
-        print(f"k1 = {k1}")
-
         k2 = len(next_start_positions) / num_particles_in_generation
-        print(f"k2 = {k2}")
+        c = tallies["secondary"] / tallies["collision"]
+
+        verbose = False
+        if verbose:
+            print(tallies)
+            print("Fission", tallies["fission"] / tallies["collision"], fission_prob)
+            print(
+                "Scatter",
+                tallies["scatter"] / tallies["collision"],
+                scatter_prob,
+            )
+            print(
+                "Absorbs",
+                tallies["capture"] / tallies["collision"],
+                1 - fission_prob - scatter_prob,
+            )
+            print("c", c)
+            print(nu * fission_prob / (c - scatter_prob))
+            print(f"k1 = {k1}")
+            print(f"k2 = {k2}")
+
+            # Sanity checks
+            assert tallies["history"] == num_particles_in_generation
+            assert (
+                tallies["capture"] + tallies["leakage"] + tallies["fission"]
+                == num_particles_in_generation
+            )
+            assert (
+                tallies["scatter"] + tallies["fission"] + tallies["capture"]
+                == tallies["collision"]
+            )
 
         num_particles_in_generation = len(next_start_positions)
+        if num_particles_in_generation == 0:
+            sys.exit("Zero particles")
         start_positions = next_start_positions
 
     if plot:
@@ -166,5 +181,30 @@ def trial(plot=True):
     return k1, k2
 
 
-def main():
-    print("k =", trial(plot=False))
+def trial(generations, particles):
+    """
+    Run a trial; a set of n independent but identical runs, averaged over.
+    """
+    n = 10
+    k1, k2 = zip(*[run(generations, particles, plot=False) for _ in range(n)])
+    return mean(k1), std(k1), mean(k2), std(k2)
+
+
+@click.command()
+@click.option("-g", "--generations", default=1, help="Number of generations.")
+@click.option(
+    "particles_list",
+    "-p",
+    "--particles",
+    default=[200000],
+    multiple=True,
+    help="Number of particles.",
+)
+def main(generations, particles_list):
+    data = []
+    for particles in particles_list:
+        data.append(trial(generations, particles))
+    df = pd.DataFrame(
+        data, index=particles_list, columns=["k1", "k1_std", "k2", "k2_std"]
+    )
+    plot_particle_convergence(df)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
+from mccc.monte_carlo import run
 from mccc.monte_carlo import simulate_single_history
-from mccc.monte_carlo import trial
 from mccc.setup import initialise_tallies
 from mccc.setup import setup_simulation
 
@@ -15,5 +15,5 @@ def test_simulate_single_history():
     )
 
 
-def test_trial():
-    trial(plot=False)
+def test_run():
+    run(1, 1000, plot=False)
