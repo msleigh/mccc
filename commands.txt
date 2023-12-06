@@ -1,2 +1,8 @@
 # particle_convergence.png
 ./mccc.py -p 1000 -p 2000 -p 4000 -p 8000 -p 16000 -p 32000 -p 64000 -p 128000 -p 256000 -p 512000 -p 1024000 -g 1
+
+# generations.png
+./mccc.py -p 128000 -g 6 -t "generations"
+
+# fission_rate.png
+./mccc.py -p 1024000 -g 12 -t "fission_rate"
