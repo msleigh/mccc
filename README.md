@@ -11,7 +11,7 @@ Monte Carlo criticality code
 
 ## Requirements
 
-mccc requires Python 3.7+. It is tested on Linux and macOS.
+mccc requires Python 3.9+. It is tested on macOS.
 
 ## Installation
 
@@ -26,7 +26,11 @@ Configuration instructions go here.
 
 ## Usage
 
-Usage instructions go here.
+To run with all defaults:
+
+    mccc
+
+See the `commands.txt` for some example commands. Full documentation is [here](https://msleigh.io).
 
 ## Development
 
@@ -39,8 +43,16 @@ virtual environment:
 
 Now install the dependencies and test dependencies:
 
-    pip install -e '.[test]'
+    pip install -e '.[docs,tests,dev]'
 
 To run the tests:
 
     pytest
+
+To build the documentation:
+
+    mkdocs build -f docs/mkdocs.yml
+
+To launch a server to build, auto-update and serve the documentation:
+
+    mkdocs serve -f docs/mkdocs.yml

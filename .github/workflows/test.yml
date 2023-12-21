@@ -11,7 +11,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+                python-version: ['3.9', '3.10', '3.11']
         steps:
             - uses: actions/checkout@v3
             - name: Set up Python ${{ matrix.python-version }}
@@ -21,8 +21,10 @@ jobs:
                   cache-dependency-path: pyproject.toml
             - name: Install dependencies
               run: |
+                  pip install --upgrade pip
                   pip install '.[docs,tests]'
             - name: Run tests
               run: |
                   pytest
-                  make -C docs html
+                  mkdocs build -sf docs/mkdocs.yml
+                  mccc
