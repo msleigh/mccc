@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
-def setup_simulation(
-    num_generations=10,
-    num_particles=200000,
-    slab_thickness_cm=1.853722,
-    total_xs=0.326400,
-    scatter_xs=0.225216,
-    fission_xs=0.081600,
-    nu=3.24,
-    left_boundary_condition="reflective",
-):
-    """
-    Function to perform the initial setup for the Monte Carlo simulation.
+from dataclasses import dataclass
+from dataclasses import field
+from dataclasses import replace
 
+
+@dataclass
+class Config:
+    """
     Parameters:
     - num_generations (int): Number of generations of neutrons for the simulation.
     - num_particles (int): Number of particles for the simulation.
@@ -22,29 +17,51 @@ def setup_simulation(
     - nu (float): Mean number of neutrons per fission.
     - left_boundary_condition (str): Boundary condition for the left-hand side of the
                                      slab ('reflective' or 'transmissive').
+    """
+
+    # Independent parameters
+    num_generations: int = 4
+    num_particles: int = 128000
+    slab_thickness_cm: float = 1.853722
+    total_xs: float = 0.326400
+    scatter_xs: float = 0.225216
+    fission_xs: float = 0.081600
+    nu: float = 3.24
+    left_boundary_condition: str = "reflective"
+
+    # Derived parameters
+    mean_free_path: float = field(init=False)
+    scatter_prob: float = field(init=False)
+    fission_prob: float = field(init=False)
+
+    # Calculate derived parameters so they're updated automatically if the
+    # independent paramer(s) they depend on are changed
+    def __post_init__(self):
+        self.mean_free_path = 1 / self.total_xs
+        self.scatter_prob = self.scatter_xs / self.total_xs
+        self.fission_prob = self.fission_xs / self.total_xs
+
+
+def setup_simulation():
+    """
+    Function to perform the initial setup for the Monte Carlo simulation.
 
     Returns:
     - dict: A dictionary containing initial data and parameters.
     """
 
-    # Calculate the mean free path (inverse of total cross-section) adjusted by the
-    # direction cosine
-    mean_free_path = 1 / total_xs
-    scatter_prob = scatter_xs * mean_free_path
-    fission_prob = fission_xs * mean_free_path
+    return Config()
 
-    initial_data = {
-        "num_generations": num_generations,
-        "num_particles": num_particles,
-        "slab_thickness_cm": slab_thickness_cm,
-        "mean_free_path": mean_free_path,
-        "scatter_prob": scatter_prob,
-        "fission_prob": fission_prob,
-        "nu": nu,
-        "left_boundary_condition": left_boundary_condition,
-    }
 
-    return initial_data
+def update_user_input(initial_data, user_input):
+    """
+    Function to perform the initial setup for the Monte Carlo simulation.
+
+    Returns:
+    - dict: A dictionary containing initial data and parameters.
+    """
+
+    return replace(initial_data, **user_input)
 
 
 def initialise_tallies():

@@ -7,11 +7,11 @@ from mccc.setup import setup_simulation
 
 def test_simulate_single_history():
     tallies = initialise_tallies()
-    initial_data = setup_simulation()
+    cfg = setup_simulation()
     start_positions = [0.0]
 
     tallies, new_start_positions = simulate_single_history(
-        initial_data, tallies, start_positions
+        cfg, tallies, start_positions
     )
 
 

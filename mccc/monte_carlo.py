@@ -16,9 +16,14 @@ from mccc.sampling import sample_position
 from mccc.sampling import sample_scattering_distance
 from mccc.setup import initialise_tallies
 from mccc.setup import setup_simulation
+from mccc.setup import update_user_input
 
 
-def simulate_single_history(initial_data, tallies, start_positions):
+def simulate_single_history(
+    cfg,
+    tallies,
+    start_positions,
+):
     """
     Function to simulate a single neutron history in a 1D slab.
 
@@ -26,17 +31,6 @@ def simulate_single_history(initial_data, tallies, start_positions):
 
     Returns:
     """
-
-    (
-        num_generations,
-        num_particles,
-        slab_thickness_cm,
-        mean_free_path,
-        scatter_prob,
-        fission_prob,
-        nu,
-        left_boundary_condition,
-    ) = initial_data.values()
 
     tallies["history"] += 1
 
@@ -47,12 +41,12 @@ def simulate_single_history(initial_data, tallies, start_positions):
     while True:
         # Free flight to next reaction/collision
         direction_cosine = sample_direction_cosine()
-        scatter_distance = sample_scattering_distance(mean_free_path)
+        scatter_distance = sample_scattering_distance(cfg.mean_free_path)
         current_position = update_neutron_position(
             current_position,
-            slab_thickness_cm,
+            cfg.slab_thickness_cm,
             direction_cosine,
-            left_boundary_condition,
+            cfg.left_boundary_condition,
             scatter_distance,
         )
 
@@ -64,7 +58,7 @@ def simulate_single_history(initial_data, tallies, start_positions):
         # Collisions
         tallies["collision"] += 1
 
-        interaction_type = sample_interaction_type(scatter_prob, fission_prob)
+        interaction_type = sample_interaction_type(cfg.scatter_prob, cfg.fission_prob)
 
         tallies[interaction_type] += 1
 
@@ -74,44 +68,54 @@ def simulate_single_history(initial_data, tallies, start_positions):
 
         # Fission
         if interaction_type == "fission":
-            num_secondaries = sample_neutrons_emitted(nu)
+            num_secondaries = sample_neutrons_emitted(cfg.nu)
             tallies["secondary"] += num_secondaries
             for fission_neutron in range(num_secondaries):
                 new_positions.append(current_position)
             return tallies, new_positions
 
+        # Scattering
         tallies["secondary"] += 1
 
 
-def run(generations, particles, plot=True):
+def run(num_generations, num_particles, plot=True):
     """
     A single independent run with a fixed number of generations and particles.
     """
-    initial_data = setup_simulation(
-        num_particles=particles, num_generations=generations
-    )
 
-    num_generations = initial_data["num_generations"]
-    num_particles = initial_data["num_particles"]
-    slab_thickness_cm = initial_data["slab_thickness_cm"]
-    fission_prob = initial_data["fission_prob"]
-    scatter_prob = initial_data["scatter_prob"]
-    nu = initial_data["nu"]
+    # Sensible defaults
+    defaults = setup_simulation()
 
-    num_particles_in_generation = num_particles
+    # Over-ride with any user input
+    # Create a dictionary from provided arguments that correspond to fields in
+    # the `defaults` object
+    user_input = {
+        k: v
+        for k, v in locals().items()
+        if k in defaults.__annotations__ and v is not None
+    }
+
+    # Replace defaults with user input
+    cfg = update_user_input(defaults, user_input)
+
+    # Initialise the per-generation number of particles
+    num_particles_in_generation = cfg.num_particles
 
     # Get a uniformly distributed set of starting positions for the initial
     # generation of particles
     start_positions = [
-        sample_position(slab_thickness_cm) for _ in range(num_particles_in_generation)
+        sample_position(cfg.slab_thickness_cm)
+        for _ in range(num_particles_in_generation)
     ]
 
+    # Lists for storing the estimates of k_effective across generations
+    # k1 and k2 are two different estimators for k_effective
     k1 = []
     k2 = []
 
-    for gen in range(num_generations):
-        if gen >= 0 and plot:
-            plot_starting_positions(num_generations, gen, start_positions)
+    for gen in range(cfg.num_generations):
+        if plot:
+            plot_starting_positions(cfg.num_generations, gen, start_positions)
 
         # Reset all the tallies to zero for this generation
         tallies = initialise_tallies()
@@ -124,7 +128,9 @@ def run(generations, particles, plot=True):
         for _ in range(num_particles_in_generation):
             # Particle history
             tallies, new_start_positions = simulate_single_history(
-                initial_data, tallies, start_positions
+                cfg,
+                tallies,
+                start_positions,
             )
 
             # Add the new start positions from this history to the global list
@@ -136,7 +142,7 @@ def run(generations, particles, plot=True):
 
         # Estimate k_eff
         k1.append(
-            nu
+            cfg.nu
             * tallies["fission"]
             / (tallies["capture"] + tallies["leakage"] + tallies["fission"])
         )
@@ -146,19 +152,21 @@ def run(generations, particles, plot=True):
         verbose = False
         if verbose:
             print(tallies)
-            print("Fission", tallies["fission"] / tallies["collision"], fission_prob)
+            print(
+                "Fission", tallies["fission"] / tallies["collision"], cfg.fission_prob
+            )
             print(
                 "Scatter",
                 tallies["scatter"] / tallies["collision"],
-                scatter_prob,
+                cfg.scatter_prob,
             )
             print(
                 "Absorbs",
                 tallies["capture"] / tallies["collision"],
-                1 - fission_prob - scatter_prob,
+                1 - cfg.fission_prob - cfg.scatter_prob,
             )
             print("c", c)
-            print(nu * fission_prob / (c - scatter_prob))
+            print(cfg.nu * cfg.fission_prob / (c - cfg.scatter_prob))
             print(f"k1 = {k1}")
             print(f"k2 = {k2}")
 
@@ -179,17 +187,17 @@ def run(generations, particles, plot=True):
         start_positions = next_start_positions
 
     if plot:
-        plot_starting_positions(num_generations, gen)
+        plot_starting_positions(cfg.num_generations, gen)
 
     return k1, k2
 
 
-def trial(generations, particles):
+def trial(num_generations, num_particles):
     """
     Run a trial; a set of n independent but identical runs, averaged over.
     """
     n = 10
-    k1, k2 = zip(*[run(generations, particles) for _ in range(n)])
+    k1, k2 = zip(*[run(num_generations, num_particles) for _ in range(n)])
     k1m = np.mean(np.array(k1), axis=0)
     k1s = np.std(np.array(k1), axis=0)
     k2m = np.mean(np.array(k2), axis=0)
@@ -197,55 +205,58 @@ def trial(generations, particles):
     return (k1m, k1s, k2m, k2s)
 
 
-def study_convergence(generations, particles_list):
+def study_convergence(num_generations, particles_list):
     data = []
-    for particles in particles_list:
-        data.append([series[-1] for series in trial(generations, particles)])
+    for num_particles in particles_list:
+        data.append([series[-1] for series in trial(num_generations, num_particles)])
     df = pd.DataFrame(
         data, index=particles_list, columns=["k1", "k1_std", "k2", "k2_std"]
     )
     plot_particle_convergence(df)
 
 
-def study_generations(generations, particles):
-    data = trial(generations, particles)
-    print(data)
+def study_generations(num_generations, num_particles):
+    data = trial(num_generations, num_particles)
     df = pd.DataFrame(
         np.transpose(data),
-        index=range(generations),
+        index=range(num_generations),
         columns=["k1", "k1_std", "k2", "k2_std"],
     )
-    print(df)
     plot_generations(df)
 
 
-def study_fission_rate(generations, particles):
-    run(generations, particles, plot=True)
+def study_fission_rate(num_generations, num_particles):
+    run(num_generations, num_particles, plot=True)
 
 
 @click.command()
-@click.option("-g", "--generations", default=1, help="Number of generations.")
+@click.option(
+    "num_generations", "-g", "--generations", type=int, help="Number of generations."
+)
 @click.option(
     "particles_list",
     "-p",
     "--particles",
-    default=[200000],
+    default=[None],
+    type=int,
     multiple=True,
     help="Number of particles.",
 )
-@click.option(
-    "plot_type", "-t", "--type", default="convergence", help="Type of plot to create."
-)
-def main(generations, particles_list, plot_type):
+@click.option("plot_type", "-t", "--type", help="Type of plot to create.")
+def main(num_generations, particles_list, plot_type):
     if plot_type == "convergence":
         if len(particles_list) < 2:
             sys.exit("Not enough -p values")
-        study_convergence(generations, particles_list)
+        study_convergence(num_generations, particles_list)
     elif plot_type == "generations":
-        if len(particles_list) != 1:
+        if len(particles_list) > 1:
             sys.exit("Too many -p values")
-        study_generations(generations, particles_list[0])
+        study_generations(num_generations, particles_list[0])
     elif plot_type == "fission_rate":
-        if len(particles_list) != 1:
+        if len(particles_list) > 1:
             sys.exit("Too many -p values")
-        study_fission_rate(generations, particles_list[0])
+        study_fission_rate(num_generations, particles_list[0])
+    else:
+        if len(particles_list) > 1:
+            sys.exit("Too many -p values")
+        run(num_generations, particles_list[0], plot=False)
