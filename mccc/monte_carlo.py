@@ -137,6 +137,7 @@ def run(num_generations, num_particles, plot=True):
             # of start positions for the next generation
             next_start_positions += new_start_positions
 
+        # Can happen for small numbers of starting particles
         if tallies["collision"] == 0:
             sys.exit("Zero collisions")
 
@@ -161,7 +162,7 @@ def run(num_generations, num_particles, plot=True):
                 cfg.scatter_prob,
             )
             print(
-                "Absorbs",
+                "Captures",
                 tallies["capture"] / tallies["collision"],
                 1 - cfg.fission_prob - cfg.scatter_prob,
             )
