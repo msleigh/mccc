@@ -78,5 +78,9 @@ def sample_scattering_distance(mean_free_path):
     - float: Sampled distance for scattering.
     """
 
-    # Calculate the distance using the inverse transform sampling method
-    return -mean_free_path * math.log(random.uniform(0, 1))
+    # Calculate the distance using inverse transform sampling.
+    # Resample if `u` is exactly zero to avoid math.log(0).
+    u = random.random()
+    while u == 0.0:
+        u = random.random()
+    return -mean_free_path * math.log(u)

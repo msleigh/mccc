@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import mccc.sampling as sampling
 from mccc.sampling import sample_direction_cosine
 from mccc.sampling import sample_interaction_type
 from mccc.sampling import sample_neutrons_emitted
@@ -112,3 +113,14 @@ def test_sample_scattering_distance():
     num_samples = 1000
     distance_values = [sample_scattering_distance(total_xs) for _ in range(num_samples)]
     assert all(distance > 0 for distance in distance_values)
+
+
+def test_sample_scattering_distance_avoids_log_zero(monkeypatch):
+    """
+    Test that a zero random draw is retried so log(0) is never evaluated.
+    """
+
+    draws = iter([0.0, 0.25])
+    monkeypatch.setattr(sampling.random, "random", lambda: next(draws))
+    distance = sample_scattering_distance(1.0)
+    assert distance > 0
