@@ -2,3 +2,10 @@
 site_name: mccc
 theme:
     name: material
+nav:
+    - Overview: index.md
+    - Getting Started: getting-started.md
+    - Testing: testing.md
+    - Code Overview: code-overview.md
+    - Model and Results: model-and-results.md
+    - CLI Usage: cli-usage.md
