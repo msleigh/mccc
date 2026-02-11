@@ -11,7 +11,7 @@ Monte Carlo criticality code
 
 ## Requirements
 
-mccc requires Python 3.9+. It is tested on macOS.
+mccc requires Python 3.10+. It is tested on macOS.
 
 ## Installation
 
@@ -38,21 +38,18 @@ To contribute to this library, first checkout the code. Then create a new
 virtual environment:
 
     cd mccc
-    python -m venv .venv
-    source .venv/bin/activate
+    uv sync --extra docs --extra tests --extra dev
 
-Now install the dependencies and test dependencies:
-
-    pip install -e '.[docs,tests,dev]'
+Run commands via `uv run`:
 
 To run the tests:
 
-    pytest
+    uv run pytest
 
 To build the documentation:
 
-    mkdocs build -f docs/mkdocs.yml
+    uv run mkdocs build -f docs/mkdocs.yml
 
 To launch a server to build, auto-update and serve the documentation:
 
-    mkdocs serve -f docs/mkdocs.yml
+    uv run mkdocs serve -f docs/mkdocs.yml

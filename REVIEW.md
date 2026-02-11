@@ -56,14 +56,6 @@ on PyPI.
    exceeds the slab and gets flagged as leaked, when physically it should
    undergo multiple reflections.
 
-4. **Publish workflow tests Python 3.7 and 3.8** (`publish.yml:16`), but
-   `pyproject.toml` requires `python = "^3.9"`. Tests on 3.7/3.8 will either
-   fail or give misleading results.
-
-5. **Publish workflow references `make -C docs html`** (`publish.yml:31`),
-   but there is no Makefile in `docs/`. The test workflow correctly uses
-   `mkdocs build -sf docs/mkdocs.yml`. This will cause publish CI to fail.
-
 ### Code Quality
 
 6. **Mixed RNG usage.** `sampling.py` uses both `random` (stdlib) and
