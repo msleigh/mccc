@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import math
-import random
 
 import numpy as np
 
@@ -13,7 +12,7 @@ def sample_direction_cosine():
     - float: Sampled direction cosine (mu).
     """
 
-    return random.uniform(-1, 1)  # Sample mu between -1 and 1
+    return np.random.uniform(-1, 1)  # Sample mu between -1 and 1
 
 
 def sample_interaction_type(scatter_prob, fission_prob, rand_num=None):
@@ -30,7 +29,7 @@ def sample_interaction_type(scatter_prob, fission_prob, rand_num=None):
 
     # Sample a random number between 0 and 1
     if rand_num is None:
-        rand_num = random.uniform(0, 1)
+        rand_num = np.random.uniform(0, 1)
 
     if rand_num < scatter_prob:
         return "scatter"
@@ -64,7 +63,7 @@ def sample_position(slab_thickness_cm):
     - float: Initial position of the neutron within the slab.
     """
     # Sample a random initial position within the slab
-    return random.uniform(0, slab_thickness_cm)
+    return np.random.uniform(0, slab_thickness_cm)
 
 
 def sample_scattering_distance(mean_free_path):
@@ -80,7 +79,7 @@ def sample_scattering_distance(mean_free_path):
 
     # Calculate the distance using inverse transform sampling.
     # Resample if `u` is exactly zero to avoid math.log(0).
-    u = random.random()
+    u = np.random.random()
     while u == 0.0:
-        u = random.random()
+        u = np.random.random()
     return -mean_free_path * math.log(u)

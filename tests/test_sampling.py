@@ -121,6 +121,6 @@ def test_sample_scattering_distance_avoids_log_zero(monkeypatch):
     """
 
     draws = iter([0.0, 0.25])
-    monkeypatch.setattr(sampling.random, "random", lambda: next(draws))
+    monkeypatch.setattr(sampling.np.random, "random", lambda: next(draws))
     distance = sample_scattering_distance(1.0)
     assert distance > 0

@@ -46,11 +46,6 @@ on PyPI.
 
 ### Code Quality
 
-1. **Mixed RNG usage.** `sampling.py` uses both `random` (stdlib) and
-   `numpy.random`. This means reproducibility via seed-setting requires
-   seeding both RNGs. Consolidating on one RNG (preferably `numpy`) would
-   simplify reproducibility.
-
 1. **No seed control.** There is no mechanism to set a random seed for
    reproducible runs. For a Monte Carlo code, this is important for
    debugging, validation, and regression testing.
