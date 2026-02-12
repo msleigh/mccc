@@ -76,7 +76,7 @@ def simulate_single_history(
         tallies["secondary"] += 1
 
 
-def run(num_generations, num_particles, plot=True):
+def run(num_generations, num_particles, plot=True, random_seed=None):
     """
     A single independent run with a fixed number of generations and particles.
     """
@@ -95,6 +95,8 @@ def run(num_generations, num_particles, plot=True):
 
     # Replace defaults with user input
     cfg = update_user_input(defaults, user_input)
+    if cfg.random_seed is not None:
+        np.random.seed(cfg.random_seed)
 
     # Get a uniformly distributed set of starting positions for the initial
     # generation of particles
@@ -188,12 +190,24 @@ def run(num_generations, num_particles, plot=True):
     return k1, k2
 
 
-def trial(num_generations, num_particles):
+def trial(num_generations, num_particles, random_seed=None):
     """
     Run a trial; a set of n independent but identical runs, averaged over.
     """
     n = 10
-    k1, k2 = zip(*[run(num_generations, num_particles) for _ in range(n)])
+    seeds = [None] * n
+    if random_seed is not None:
+        seeds = [random_seed + i for i in range(n)]
+    k1, k2 = zip(
+        *[
+            run(
+                num_generations,
+                num_particles,
+                random_seed=seed,
+            )
+            for seed in seeds
+        ]
+    )
     k1m = np.mean(np.array(k1), axis=0)
     k1s = np.std(np.array(k1), axis=0)
     k2m = np.mean(np.array(k2), axis=0)
@@ -201,18 +215,32 @@ def trial(num_generations, num_particles):
     return (k1m, k1s, k2m, k2s)
 
 
-def study_convergence(num_generations, particles_list):
+def study_convergence(num_generations, particles_list, random_seed=None):
     data = []
-    for num_particles in particles_list:
-        data.append([series[-1] for series in trial(num_generations, num_particles)])
+    for i, num_particles in enumerate(particles_list):
+        seed = None if random_seed is None else random_seed + i
+        data.append(
+            [
+                series[-1]
+                for series in trial(
+                    num_generations,
+                    num_particles,
+                    random_seed=seed,
+                )
+            ]
+        )
     df = pd.DataFrame(
         data, index=particles_list, columns=["k1", "k1_std", "k2", "k2_std"]
     )
     plot_particle_convergence(df)
 
 
-def study_generations(num_generations, num_particles):
-    data = trial(num_generations, num_particles)
+def study_generations(num_generations, num_particles, random_seed=None):
+    data = trial(
+        num_generations,
+        num_particles,
+        random_seed=random_seed,
+    )
     df = pd.DataFrame(
         np.transpose(data),
         index=range(num_generations),
@@ -221,8 +249,13 @@ def study_generations(num_generations, num_particles):
     plot_generations(df)
 
 
-def study_fission_rate(num_generations, num_particles):
-    run(num_generations, num_particles, plot=True)
+def study_fission_rate(num_generations, num_particles, random_seed=None):
+    run(
+        num_generations,
+        num_particles,
+        plot=True,
+        random_seed=random_seed,
+    )
 
 
 @click.command()
@@ -238,21 +271,45 @@ def study_fission_rate(num_generations, num_particles):
     multiple=True,
     help="Number of particles.",
 )
+@click.option(
+    "random_seed",
+    "--seed",
+    type=int,
+    default=None,
+    help="Random seed for reproducible sampling.",
+)
 @click.option("plot_type", "-t", "--type", help="Type of plot to create.")
-def main(num_generations, particles_list, plot_type):
+def main(num_generations, particles_list, random_seed, plot_type):
     if plot_type == "convergence":
         if len(particles_list) < 2:
             sys.exit("Not enough -p values")
-        study_convergence(num_generations, particles_list)
+        study_convergence(
+            num_generations,
+            particles_list,
+            random_seed=random_seed,
+        )
     elif plot_type == "generations":
         if len(particles_list) > 1:
             sys.exit("Too many -p values")
-        study_generations(num_generations, particles_list[0])
+        study_generations(
+            num_generations,
+            particles_list[0],
+            random_seed=random_seed,
+        )
     elif plot_type == "fission_rate":
         if len(particles_list) > 1:
             sys.exit("Too many -p values")
-        study_fission_rate(num_generations, particles_list[0])
+        study_fission_rate(
+            num_generations,
+            particles_list[0],
+            random_seed=random_seed,
+        )
     else:
         if len(particles_list) > 1:
             sys.exit("Too many -p values")
-        run(num_generations, particles_list[0], plot=False)
+        run(
+            num_generations,
+            particles_list[0],
+            plot=False,
+            random_seed=random_seed,
+        )

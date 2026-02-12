@@ -22,13 +22,19 @@ ideally by using a virtual environment. Open up a terminal and install with:
 
 ## Configuration
 
-Configuration instructions go here.
+Use `--seed` to make Monte Carlo sampling reproducible:
+
+    mccc -g 4 -p 128000 --seed 12345
 
 ## Usage
 
 To run with all defaults:
 
     mccc
+
+To run reproducibly:
+
+    mccc -g 4 -p 128000 --seed 12345
 
 See the `commands.txt` for some example commands.
 Full documentation is available at <https://msleigh.io>.

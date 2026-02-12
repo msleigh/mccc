@@ -20,3 +20,10 @@ def test_simulate_single_history():
 
 def test_run():
     run(1, 1000, plot=False)
+
+
+def test_run_reproducible_with_seed():
+    k1_a, k2_a = run(2, 1000, plot=False, random_seed=12345)
+    k1_b, k2_b = run(2, 1000, plot=False, random_seed=12345)
+    assert k1_a == k1_b
+    assert k2_a == k2_b

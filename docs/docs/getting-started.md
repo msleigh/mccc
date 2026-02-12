@@ -37,6 +37,12 @@ Run a default simulation:
 uv run mccc -g 4 -p 128000
 ```
 
+Run a reproducible simulation:
+
+```bash
+uv run mccc -g 4 -p 128000 --seed 12345
+```
+
 Run a convergence study:
 
 ```bash
@@ -68,6 +74,7 @@ toy problem:
 - `fission_xs = 0.081600`
 - `nu = 3.24`
 - `left_boundary_condition = "reflective"`
+- `random_seed = None`
 
 Derived values such as mean free path and reaction probabilities are computed
 from those inputs.

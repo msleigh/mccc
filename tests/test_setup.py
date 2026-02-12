@@ -20,6 +20,7 @@ def test_setup_simulation():
     assert hasattr(initial_data, "fission_prob")
     assert hasattr(initial_data, "nu")
     assert hasattr(initial_data, "left_boundary_condition")
+    assert hasattr(initial_data, "random_seed")
 
     # Assuming the default values
     assert initial_data.num_generations == 4
@@ -30,6 +31,7 @@ def test_setup_simulation():
     assert initial_data.fission_prob == 0.0816 / 0.326400
     assert initial_data.nu == 3.24
     assert initial_data.left_boundary_condition == "reflective"
+    assert initial_data.random_seed is None
 
 
 def test_update_user_input():
@@ -45,6 +47,7 @@ def test_update_user_input():
     fission_xs = 0.03
     nu = 3.24
     left_boundary_condition = "transmissive"
+    random_seed = 1234
 
     initial_data_custom = setup_simulation()
     user_input = {
@@ -62,6 +65,7 @@ def test_update_user_input():
     assert hasattr(initial_data_custom, "fission_prob")
     assert hasattr(initial_data_custom, "nu")
     assert hasattr(initial_data_custom, "left_boundary_condition")
+    assert hasattr(initial_data_custom, "random_seed")
 
     # Assuming the default values
     assert initial_data_custom.num_generations == num_generations
@@ -72,6 +76,7 @@ def test_update_user_input():
     assert initial_data_custom.fission_prob == fission_xs / total_xs
     assert initial_data_custom.nu == nu
     assert initial_data_custom.left_boundary_condition == left_boundary_condition
+    assert initial_data_custom.random_seed == random_seed
 
 
 def test_initialise_tallies():

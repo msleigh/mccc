@@ -16,6 +16,7 @@ Options:
 
 - `-g, --generations INTEGER`: number of generations.
 - `-p, --particles INTEGER`: particle count (repeat for convergence mode).
+- `--seed INTEGER`: random seed for reproducible sampling.
 - `-t, --type TEXT`: plot type (`convergence`, `generations`, `fission_rate`).
 
 ## Examples
@@ -24,6 +25,12 @@ Default run (no plots):
 
 ```bash
 mccc -g 6 -p 128000
+```
+
+Reproducible default run:
+
+```bash
+mccc -g 6 -p 128000 --seed 12345
 ```
 
 Convergence sweep:

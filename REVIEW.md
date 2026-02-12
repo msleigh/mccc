@@ -46,10 +46,6 @@ on PyPI.
 
 ### Code Quality
 
-1. **No seed control.** There is no mechanism to set a random seed for
-   reproducible runs. For a Monte Carlo code, this is important for
-   debugging, validation, and regression testing.
-
 1. **Hardcoded `verbose = False`** (`monte_carlo.py:153`). The verbose
    debug block and sanity checks are dead code that can never execute.
    This should either be a CLI flag or removed.

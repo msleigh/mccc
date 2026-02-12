@@ -17,6 +17,7 @@ class Config:
     - nu (float): Mean number of neutrons per fission.
     - left_boundary_condition (str): Boundary condition for the left-hand side of the
                                      slab ('reflective' or 'transmissive').
+    - random_seed (int | None): Optional RNG seed for reproducible runs.
     """
 
     # Independent parameters
@@ -28,6 +29,7 @@ class Config:
     fission_xs: float = 0.081600
     nu: float = 3.24
     left_boundary_condition: str = "reflective"
+    random_seed: int | None = None
 
     # Derived parameters
     mean_free_path: float = field(init=False)

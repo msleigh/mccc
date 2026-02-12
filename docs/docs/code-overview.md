@@ -38,7 +38,7 @@ tallies.
 `Config` in `mccc/setup.py` contains:
 
 - Independent inputs: number of generations/particles, slab thickness, cross
-  sections, `nu`, and boundary condition.
+  sections, `nu`, boundary condition, and optional `random_seed`.
 - Derived values: `mean_free_path`, `scatter_prob`, and `fission_prob`
   (computed in `__post_init__`).
 
@@ -57,11 +57,15 @@ The code tracks two generation-wise estimators:
 Using multiple generations is important because a single generation started
 from a uniform source does not represent the steady fission source shape.
 
+When `random_seed` is provided (or `--seed` via CLI), NumPy RNG is seeded at
+the start of `run`, making sampling reproducible.
+
 ## CLI entrypoint
 
 The `mccc` command maps to `mccc.monte_carlo:main` and supports:
 
 - default run
+- seeded reproducible run (`--seed`)
 - convergence study (`-t convergence`)
 - generations study (`-t generations`)
 - fission-rate study (`-t fission_rate`)
