@@ -11,8 +11,11 @@ def test_simulate_single_history():
     start_positions = [0.0]
 
     tallies, new_start_positions = simulate_single_history(
-        cfg, tallies, start_positions
+        cfg, tallies, start_positions[0]
     )
+    assert tallies["history"] == 1
+    assert isinstance(new_start_positions, list)
+    assert start_positions == [0.0]
 
 
 def test_run():

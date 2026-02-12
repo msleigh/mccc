@@ -22,7 +22,7 @@ from mccc.setup import update_user_input
 def simulate_single_history(
     cfg,
     tallies,
-    start_positions,
+    current_position,
 ):
     """
     Function to simulate a single neutron history in a 1D slab.
@@ -33,8 +33,6 @@ def simulate_single_history(
     """
 
     tallies["history"] += 1
-
-    current_position = start_positions.pop()
 
     new_positions = []
 
@@ -98,14 +96,10 @@ def run(num_generations, num_particles, plot=True):
     # Replace defaults with user input
     cfg = update_user_input(defaults, user_input)
 
-    # Initialise the per-generation number of particles
-    num_particles_in_generation = cfg.num_particles
-
     # Get a uniformly distributed set of starting positions for the initial
     # generation of particles
     start_positions = [
-        sample_position(cfg.slab_thickness_cm)
-        for _ in range(num_particles_in_generation)
+        sample_position(cfg.slab_thickness_cm) for _ in range(cfg.num_particles)
     ]
 
     # Lists for storing the estimates of k_effective across generations
@@ -114,6 +108,10 @@ def run(num_generations, num_particles, plot=True):
     k2 = []
 
     for gen in range(cfg.num_generations):
+        num_particles_in_generation = len(start_positions)
+        if num_particles_in_generation == 0:
+            sys.exit("Zero particles")
+
         if plot:
             plot_starting_positions(cfg.num_generations, gen, start_positions)
 
@@ -125,12 +123,12 @@ def run(num_generations, num_particles, plot=True):
         next_start_positions = []
 
         # Main loop over particles in this generation
-        for _ in range(num_particles_in_generation):
+        for current_position in start_positions:
             # Particle history
             tallies, new_start_positions = simulate_single_history(
                 cfg,
                 tallies,
-                start_positions,
+                current_position,
             )
 
             # Add the new start positions from this history to the global list
@@ -182,9 +180,6 @@ def run(num_generations, num_particles, plot=True):
                 == tallies["collision"]
             )
 
-        num_particles_in_generation = len(next_start_positions)
-        if num_particles_in_generation == 0:
-            sys.exit("Zero particles")
         start_positions = next_start_positions
 
     if plot:

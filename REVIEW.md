@@ -33,12 +33,6 @@ on PyPI.
 
 ### Bugs
 
-1. **`start_positions` list mutation via `pop()` in `simulate_single_history`**
-   (`monte_carlo.py:37`). The function pops from the shared `start_positions`
-   list, which is a side effect. If the list runs out of elements before all
-   particles are processed (e.g. due to a logic error or configuration
-   mismatch), this will raise an `IndexError` with no informative message.
-
 1. **Reflective boundary logic is incomplete** (`geometry.py:21-23`). The
    current reflective boundary does `abs(new_position)`, which correctly
    handles a single reflection at `x=0`. However, if `abs(new_position) >
